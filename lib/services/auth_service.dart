@@ -52,19 +52,19 @@ class AuthService {
       );
 
       if (response.statusCode == 200) {
-          final data = jsonDecode(response.body);
+        final data = jsonDecode(response.body);
 
-          if (data["success"] == true) {
-            final prefs = await SharedPreferences.getInstance();
+        if (data["success"] == true) {
+          final prefs = await SharedPreferences.getInstance();
 
-            await prefs.setBool(_loginKey, true);
-            await prefs.setString(_userKey, email);
+          await prefs.setBool(_loginKey, true);
+          await prefs.setString(_userKey, email);
 
-            await UsageService.resetUsage();
+          await UsageService.resetUsage();
 
-            return true;
-          }
+          return true;
         }
+      }
 
       return false;
     } catch (e) {
@@ -87,5 +87,8 @@ class AuthService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_loginKey);
     await prefs.remove(_userKey);
+
+    // ✅ IMPORTANT FIX: reset guest usage on logout
+    await UsageService.resetUsage();
   }
 }

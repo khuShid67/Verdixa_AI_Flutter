@@ -9,7 +9,7 @@ class ApiService {
 
   static Future<PredictionModel?> predictDisease(
     XFile imageFile,
-    String userEmail,   // IMPORTANT FIX
+    String? userEmail, // ✔ FIX: nullable
   ) async {
     try {
       var request = http.MultipartRequest(
@@ -17,7 +17,10 @@ class ApiService {
         Uri.parse("${AppConfig.baseUrl}/predict"),
       );
 
-      request.fields['user_email'] = userEmail;
+      // ✔ ONLY send email if user is logged in
+      if (userEmail != null && userEmail.isNotEmpty) {
+        request.fields['user_email'] = userEmail;
+      }
 
       final bytes = await imageFile.readAsBytes();
 

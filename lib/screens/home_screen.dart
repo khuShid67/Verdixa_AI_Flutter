@@ -51,7 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
       final usage = await UsageService.getUsage();
 
       if (usage >= 3) {
-        _showMessage("Free limit reached. Please login.");
+        _showMessage("Free limit reached. Please login to continue scanning.");
         Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const LoginScreen()),
@@ -111,13 +111,9 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() => isLoading = true);
 
     try {
-      final email = await AuthService.currentUser();
+      // ❌ REMOVED LOGIN BLOCK (THIS WAS THE ISSUE)
 
-      if (email == null) {
-        _showMessage("Please login first");
-        setState(() => isLoading = false);
-        return;
-      }
+      final email = await AuthService.currentUser();
 
       final result = await ApiService.predictDisease(
         selectedImage!,
@@ -129,6 +125,11 @@ class _HomeScreenState extends State<HomeScreen> {
       if (result == null) {
         _showMessage("Server error");
         return;
+      }
+
+      final loggedIn = await AuthService.isLoggedIn();
+      if (!loggedIn) {
+        await UsageService.incrementUsage();
       }
 
       Navigator.push(
@@ -165,11 +166,12 @@ class _HomeScreenState extends State<HomeScreen> {
         label: const Text("Scan"),
       ),
 
-      // ================= APP BAR WITH LOGO =================
       appBar: AppBar(
         centerTitle: true,
         title: Image.asset(
-          isDark ? '../assets/images/logo_dark.png' : '../assets/images/logo_light.png',
+          isDark
+              ? '../assets/images/logo_dark.png'
+              : '../assets/images/logo_light.png',
           height: 200,
         ),
         actions: [
@@ -217,7 +219,6 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             const SizedBox(height: 20),
 
-            /// INFO CARD
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Container(
@@ -243,7 +244,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
             const SizedBox(height: 20),
 
-            /// IMAGE BOX
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.all(16),
@@ -268,15 +268,11 @@ class _HomeScreenState extends State<HomeScreen> {
                               Icon(Icons.image_search,
                                   size: 90, color: color.primary),
                               const SizedBox(height: 10),
-                              Text(
-                                "No image selected",
-                                style: theme.textTheme.titleMedium,
-                              ),
+                              Text("No image selected",
+                                  style: theme.textTheme.titleMedium),
                               const SizedBox(height: 5),
-                              Text(
-                                "Tap Scan to start analysis",
-                                style: theme.textTheme.bodySmall,
-                              ),
+                              Text("Tap Scan to start analysis",
+                                  style: theme.textTheme.bodySmall),
                             ],
                           )
                         : kIsWeb
@@ -292,7 +288,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
             const SizedBox(height: 10),
 
-            /// ANALYZE BUTTON
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: SizedBox(

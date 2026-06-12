@@ -5,7 +5,6 @@ import 'screens/splash_screen.dart';
 import 'screens/home_screen.dart';
 import 'providers/theme_provider.dart';
 import 'providers/language_provider.dart';
-import 'services/storage_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,7 +14,6 @@ void main() async {
 
   final languageProvider = LanguageProvider();
   await languageProvider.init();
-  await StorageService.init();
   
   runApp(
     MultiProvider(

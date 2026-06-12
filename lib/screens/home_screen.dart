@@ -4,18 +4,15 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:typed_data';
 
-import '../services/history_service.dart';
-import '../models/detection_history_model.dart';
 import '../services/auth_service.dart';
 import '../services/usage_service.dart';
-import 'login_screen.dart';
-import '../models/prediction_model.dart';
 import '../services/api_service.dart';
+
 import '../widgets/translated_text.dart';
+
+import 'login_screen.dart';
 import 'result_screen.dart';
 import 'settings_screen.dart';
-import '../models/scan_model.dart';
-import '../services/scan_service.dart';
 import 'profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -30,48 +27,21 @@ class _HomeScreenState extends State<HomeScreen> {
   Uint8List? imageBytes;
   bool isLoading = false;
 
-  Future<void> pickImage() async {
-    try {
-      final picker = ImagePicker();
+  Future<void> pickImage(ImageSource source) async {
+    final picker = ImagePicker();
+    final image = await picker.pickImage(
+      source: source,
+      imageQuality: 90,
+    );
 
-      final image = await picker.pickImage(
-        source: ImageSource.gallery,
-        imageQuality: 90,
-      );
+    if (image == null) return;
 
-      if (image == null) return;
+    final bytes = await image.readAsBytes();
 
-      final bytes = await image.readAsBytes();
-
-      setState(() {
-        selectedImage = image;
-        imageBytes = bytes;
-      });
-    } catch (e) {
-      _showMessage("Failed to select image");
-    }
-  }
-
-  Future<void> captureImage() async {
-    try {
-      final picker = ImagePicker();
-
-      final image = await picker.pickImage(
-        source: ImageSource.camera,
-        imageQuality: 90,
-      );
-
-      if (image == null) return;
-
-      final bytes = await image.readAsBytes();
-
-      setState(() {
-        selectedImage = image;
-        imageBytes = bytes;
-      });
-    } catch (e) {
-      _showMessage("Failed to capture image");
-    }
+    setState(() {
+      selectedImage = image;
+      imageBytes = bytes;
+    });
   }
 
   Future<void> selectImageSource() async {
@@ -81,15 +51,10 @@ class _HomeScreenState extends State<HomeScreen> {
       final usage = await UsageService.getUsage();
 
       if (usage >= 3) {
-        _showMessage(
-          "Free limit reached. Please login to continue.",
-        );
-
+        _showMessage("Free limit reached. Please login.");
         Navigator.push(
           context,
-          MaterialPageRoute(
-            builder: (_) => const LoginScreen(),
-          ),
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
         );
         return;
       }
@@ -97,25 +62,40 @@ class _HomeScreenState extends State<HomeScreen> {
 
     showModalBottomSheet(
       context: context,
-      builder: (context) {
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) {
+        final theme = Theme.of(context);
+
         return SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              const SizedBox(height: 10),
+              Text(
+                "Scan Leaf Image",
+                style: theme.textTheme.titleMedium,
+              ),
+              const SizedBox(height: 10),
+
               ListTile(
-                leading: const Icon(Icons.camera_alt),
+                leading: Icon(Icons.camera_alt,
+                    color: theme.colorScheme.primary),
                 title: const Text("Camera"),
                 onTap: () {
                   Navigator.pop(context);
-                  captureImage();
+                  pickImage(ImageSource.camera);
                 },
               ),
+
               ListTile(
-                leading: const Icon(Icons.photo),
+                leading: Icon(Icons.photo_library,
+                    color: theme.colorScheme.primary),
                 title: const Text("Gallery"),
                 onTap: () {
                   Navigator.pop(context);
-                  pickImage();
+                  pickImage(ImageSource.gallery);
                 },
               ),
             ],
@@ -128,52 +108,27 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> analyzeLeaf() async {
     if (selectedImage == null || isLoading) return;
 
-    setState(() {
-      isLoading = true;
-    });
+    setState(() => isLoading = true);
 
     try {
-      final PredictionModel? result =
-          await ApiService.predictDisease(selectedImage!);
+      final email = await AuthService.currentUser();
 
-      if (!mounted) return;
-
-      setState(() {
-        isLoading = false;
-      });
-
-      if (result == null) {
-        _showMessage("Failed to connect to server");
+      if (email == null) {
+        _showMessage("Please login first");
+        setState(() => isLoading = false);
         return;
       }
 
-      final loggedIn = await AuthService.isLoggedIn();
-
-      if (!loggedIn) {
-        await UsageService.incrementUsage();
-      }
-
-      await HistoryService.addDetection(
-        DetectionHistoryModel(
-          imagePath: selectedImage!.path,
-          diseaseName: result.prediction,
-          confidence: result.confidence,
-          date: DateTime.now(),
-        ),
+      final result = await ApiService.predictDisease(
+        selectedImage!,
+        email,
       );
 
-      final currentUser = await AuthService.currentUser();
+      setState(() => isLoading = false);
 
-      if (currentUser != null) {
-        await ScanService.saveScan(
-          ScanModel(
-            email: currentUser,
-            imagePath: selectedImage!.path,
-            disease: result.prediction,
-            confidence: result.confidence,
-            date: DateTime.now().toIso8601String(),
-          ),
-        );
+      if (result == null) {
+        _showMessage("Server error");
+        return;
       }
 
       Navigator.push(
@@ -186,44 +141,48 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       );
     } catch (e) {
-      if (!mounted) return;
-
-      setState(() {
-        isLoading = false;
-      });
-
+      setState(() => isLoading = false);
       _showMessage("Something went wrong");
     }
   }
 
-  void _showMessage(String message) {
+  void _showMessage(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: TranslatedText(message),
-      ),
+      SnackBar(content: TranslatedText(msg)),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final color = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: selectImageSource,
+        icon: const Icon(Icons.document_scanner),
+        label: const Text("Scan"),
+      ),
+
+      // ================= APP BAR WITH LOGO =================
       appBar: AppBar(
-        title: const Text("Plant Disease Detection"),
+        centerTitle: true,
+        title: Image.asset(
+          isDark ? '../assets/images/logo_dark.png' : '../assets/images/logo_light.png',
+          height: 200,
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.person),
             onPressed: () async {
-              final loggedIn =
-                  await AuthService.isLoggedIn();
+              final loggedIn = await AuthService.isLoggedIn();
 
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => loggedIn
-                      ? const ProfileScreen()
-                      : const LoginScreen(),
+                  builder: (_) =>
+                      loggedIn ? const ProfileScreen() : const LoginScreen(),
                 ),
               );
             },
@@ -242,95 +201,123 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
 
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              Expanded(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              color.surface,
+              color.surfaceContainerHighest.withOpacity(0.4),
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+
+        child: Column(
+          children: [
+            const SizedBox(height: 20),
+
+            /// INFO CARD
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: color.primaryContainer.withOpacity(0.4),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.eco, size: 40, color: color.primary),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        "Upload a leaf image and get instant AI disease detection",
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            /// IMAGE BOX
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
                 child: Container(
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: theme.colorScheme.outline,
-                    ),
+                    color: color.surface,
+                    borderRadius: BorderRadius.circular(25),
+                    boxShadow: [
+                      BoxShadow(
+                        blurRadius: 12,
+                        color: color.shadow.withOpacity(0.1),
+                      ),
+                    ],
                   ),
-                  child: selectedImage == null
-                      ? Column(
-                          mainAxisAlignment:
-                              MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.image_search_rounded,
-                              size: 70,
-                              color:
-                                  theme.colorScheme.primary,
-                            ),
-                            const SizedBox(height: 16),
-                            TranslatedText(
-                              "Select a leaf image",
-                              style: theme.textTheme.titleMedium,
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        )
-                      : ClipRRect(
-                          borderRadius:
-                              BorderRadius.circular(20),
-                          child: kIsWeb
-                              ? Image.memory(
-                                  imageBytes!,
-                                  fit: BoxFit.cover,
-                                )
-                              : Image.file(
-                                  File(selectedImage!.path),
-                                ),
-                        ),
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: ElevatedButton.icon(
-                  icon: const Icon(Icons.image),
-                  onPressed:
-                      isLoading ? null : selectImageSource,
-                  label: const TranslatedText(
-                    "Choose Image",
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(25),
+                    child: selectedImage == null
+                        ? Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.image_search,
+                                  size: 90, color: color.primary),
+                              const SizedBox(height: 10),
+                              Text(
+                                "No image selected",
+                                style: theme.textTheme.titleMedium,
+                              ),
+                              const SizedBox(height: 5),
+                              Text(
+                                "Tap Scan to start analysis",
+                                style: theme.textTheme.bodySmall,
+                              ),
+                            ],
+                          )
+                        : kIsWeb
+                            ? Image.memory(imageBytes!, fit: BoxFit.cover)
+                            : Image.file(
+                                File(selectedImage!.path),
+                                fit: BoxFit.cover,
+                              ),
                   ),
                 ),
               ),
+            ),
 
-              const SizedBox(height: 12),
+            const SizedBox(height: 10),
 
-              SizedBox(
+            /// ANALYZE BUTTON
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: SizedBox(
                 width: double.infinity,
-                height: 52,
+                height: 55,
                 child: ElevatedButton.icon(
-                  icon: isLoading
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child:
-                              CircularProgressIndicator(
-                            strokeWidth: 2,
-                          ),
-                        )
-                      : const Icon(Icons.analytics),
                   onPressed: selectedImage == null || isLoading
                       ? null
                       : analyzeLeaf,
-                  label: isLoading
-                      ? const TranslatedText("Analyzing...")
-                      : const TranslatedText("Analyze"),
+                  icon: isLoading
+                      ? const SizedBox(
+                          height: 18,
+                          width: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.analytics),
+                  label: Text(
+                    isLoading ? "Analyzing..." : "Analyze Disease",
+                  ),
                 ),
               ),
-            ],
-          ),
+            ),
+
+            const SizedBox(height: 15),
+          ],
         ),
       ),
     );

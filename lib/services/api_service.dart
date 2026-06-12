@@ -1,18 +1,23 @@
 import 'dart:convert';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
+
 import '../models/prediction_model.dart';
 import '../config/app_config.dart';
 
 class ApiService {
 
   static Future<PredictionModel?> predictDisease(
-      XFile imageFile) async {
+    XFile imageFile,
+    String userEmail,   // IMPORTANT FIX
+  ) async {
     try {
       var request = http.MultipartRequest(
         "POST",
         Uri.parse("${AppConfig.baseUrl}/predict"),
       );
+
+      request.fields['user_email'] = userEmail;
 
       final bytes = await imageFile.readAsBytes();
 
@@ -25,20 +30,20 @@ class ApiService {
       );
 
       var response = await request.send();
-
       final responseBody = await response.stream.bytesToString();
+
+      print("STATUS: ${response.statusCode}");
+      print("BODY: $responseBody");
 
       if (response.statusCode == 200) {
         final data = jsonDecode(responseBody);
         return PredictionModel.fromJson(data);
-      } else {
-        print("Server Error: $responseBody");
-        return null;
       }
 
-    } catch (e, s) {
+      return null;
+
+    } catch (e) {
       print("API Error: $e");
-      print(s);
       return null;
     }
   }

@@ -5,15 +5,18 @@ import '../models/user_model.dart';
 import 'usage_service.dart';
 
 class AuthService {
-  static const String baseUrl = "http://YOUR_IP:3000";
+  static const String baseUrl = "http://10.191.21.171:8000";
 
   static const String _loginKey = "is_logged_in";
   static const String _userKey = "current_user";
 
   static Future<bool> register(UserModel user) async {
     try {
+      print("Sending registration request...");
+      print("Email: ${user.email}");
+
       final response = await http.post(
-        Uri.parse("$baseUrl/users"),
+        Uri.parse("$baseUrl/register"),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({
           "email": user.email,
@@ -21,9 +24,18 @@ class AuthService {
         }),
       );
 
-      return response.statusCode == 200;
+      print("========== REGISTER ==========");
+      print("STATUS: ${response.statusCode}");
+      print("BODY: ${response.body}");
+      print("==============================");
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data["success"] == true;
+      }
+      return false;
     } catch (e) {
-      print("Register Error: $e");
+      print("REGISTER ERROR: $e");
       return false;
     }
   }
@@ -40,19 +52,19 @@ class AuthService {
       );
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
+          final data = jsonDecode(response.body);
 
-        if (data.isNotEmpty) {
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setBool(_loginKey, true);
-          await prefs.setString(_userKey, email);
+          if (data["success"] == true) {
+            final prefs = await SharedPreferences.getInstance();
 
-          // ✅ RESET SCANS AFTER LOGIN
-          await UsageService.resetUsage();
+            await prefs.setBool(_loginKey, true);
+            await prefs.setString(_userKey, email);
 
-          return true;
+            await UsageService.resetUsage();
+
+            return true;
+          }
         }
-      }
 
       return false;
     } catch (e) {

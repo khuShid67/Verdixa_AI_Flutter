@@ -1,4 +1,4 @@
-name: plant_disease_app
+name: Verdixa_AI
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -40,8 +40,6 @@ dependencies:
   shared_preferences: ^2.2.3
   cupertino_icons: ^1.0.8
   translator: ^1.0.3
-  hive: ^2.2.3
-  hive_flutter: ^1.1.0
 
 dev_dependencies:
   flutter_test:

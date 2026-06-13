@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'scan_history_screen.dart';
 import '../services/auth_service.dart';
+import '../widgets/translated_text.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -36,7 +37,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Profile"),
+        title: const TranslatedText("Profile"),
         centerTitle: true,
       ),
 
@@ -86,7 +87,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const SizedBox(height: 12),
 
                     Text(
-                      email ?? "Guest User",
+                      email ?? "Guest",
                       textAlign: TextAlign.center,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
@@ -96,7 +97,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const SizedBox(height: 5),
 
                     Text(
-                      "Verdixa AI User",
+                      "App User",
                       style: theme.textTheme.bodySmall,
                     ),
                   ],
@@ -110,7 +111,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 context,
                 icon: Icons.history,
                 title: "My Scans",
-                subtitle: "View all detected plant diseases",
+                subtitle: "View History",
                 onTap: () {
                   Navigator.push(
                     context,
@@ -127,7 +128,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 context,
                 icon: Icons.logout,
                 title: "Logout",
-                subtitle: "Sign out from this device",
+                subtitle: "Sign Out",
                 isDanger: true,
                 onTap: logout,
               ),
@@ -152,6 +153,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
+
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -164,6 +166,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ],
         ),
+
         child: Row(
           children: [
             Container(
@@ -192,7 +195,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
+
                   const SizedBox(height: 3),
+
                   Text(
                     subtitle,
                     style: theme.textTheme.bodySmall,

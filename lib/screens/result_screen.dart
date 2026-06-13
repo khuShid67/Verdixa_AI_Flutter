@@ -17,7 +17,7 @@ class ResultScreen extends StatelessWidget {
   });
 
   String formatDisease(String value) {
-    if (value.isEmpty) return "Unknown Disease";
+    if (value.isEmpty) return "unknown_disease";
 
     if (value.contains("___")) {
       value = value.split("___").last;
@@ -41,6 +41,16 @@ class ResultScreen extends StatelessWidget {
         .join(' ');
   }
 
+  String formatValue(dynamic value) {
+    if (value == null) return "";
+
+    if (value is List) {
+      return value.map((e) => e.toString()).join(", ");
+    }
+
+    return value.toString();
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -51,7 +61,7 @@ class ResultScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const TranslatedText("Analysis Result"),
+        title: const TranslatedText("analysis_result"),
         centerTitle: true,
       ),
 
@@ -140,12 +150,11 @@ class ResultScreen extends StatelessWidget {
       child: Column(
         children: [
           Icon(Icons.eco, color: color.primary, size: 42),
-
           const SizedBox(height: 10),
 
           TranslatedText(
             result.prediction.isEmpty
-                ? "Unknown Disease"
+                ? "unknown_disease"
                 : formatDisease(result.prediction),
             textAlign: TextAlign.center,
             style: theme.textTheme.titleLarge?.copyWith(
@@ -158,9 +167,12 @@ class ResultScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _chip(Icons.verified, "Status", result.status),
-              _chip(Icons.percent, "Confidence",
-                  "${result.confidence.toStringAsFixed(2)}%"),
+              _chip(Icons.verified, "status", result.status),
+              _chip(
+                Icons.percent,
+                "confidence",
+                "${result.confidence.toStringAsFixed(2)}%",
+              ),
             ],
           ),
         ],
@@ -168,7 +180,6 @@ class ResultScreen extends StatelessWidget {
     );
   }
 
-  // ================= CHIP UI =================
   Widget _chip(IconData icon, String title, String value) {
     return Expanded(
       child: Container(
@@ -182,9 +193,13 @@ class ResultScreen extends StatelessWidget {
           children: [
             Icon(icon, size: 20),
             const SizedBox(height: 6),
-            Text(title,
-                style: const TextStyle(
-                    fontSize: 12, fontWeight: FontWeight.bold)),
+
+            TranslatedText(
+              title,
+              style: const TextStyle(
+                  fontSize: 12, fontWeight: FontWeight.bold),
+            ),
+
             const SizedBox(height: 4),
             Text(value, textAlign: TextAlign.center),
           ],
@@ -199,7 +214,7 @@ class ResultScreen extends StatelessWidget {
 
     return _sectionCard(
       context,
-      title: "Nearest Matching Diseases",
+      title: "nearest_matching_diseases",
       icon: Icons.search,
       child: result.nearestDiseases != null &&
               result.nearestDiseases!.isNotEmpty
@@ -213,7 +228,7 @@ class ResultScreen extends StatelessWidget {
                   )
                   .toList(),
             )
-          : const TranslatedText("No similar diseases found."),
+          : const TranslatedText("no_similar_diseases"),
     );
   }
 
@@ -221,7 +236,7 @@ class ResultScreen extends StatelessWidget {
   Widget _infoCard(BuildContext context) {
     return _sectionCard(
       context,
-      title: "Disease Information",
+      title: "disease_information",
       icon: Icons.info_outline,
       child: Column(
         children: result.recommendation!.entries
@@ -243,7 +258,8 @@ class ResultScreen extends StatelessWidget {
                       children: [
                         const Icon(Icons.circle, size: 8),
                         const SizedBox(width: 6),
-                        Text(
+
+                        TranslatedText(
                           formatKey(entry.key),
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
@@ -252,7 +268,8 @@ class ResultScreen extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 6),
-                    TranslatedText(entry.value.toString()),
+
+                    TranslatedText(formatValue(entry.value)),
                   ],
                 ),
               ),
@@ -266,7 +283,7 @@ class ResultScreen extends StatelessWidget {
   Widget _messageCard(BuildContext context) {
     return _sectionCard(
       context,
-      title: "Message",
+      title: "message",
       icon: Icons.message,
       child: TranslatedText(result.message!),
     );
@@ -301,7 +318,8 @@ class ResultScreen extends StatelessWidget {
             children: [
               Icon(icon, color: color.primary),
               const SizedBox(width: 8),
-              Text(
+
+              TranslatedText(
                 title,
                 style: Theme.of(context)
                     .textTheme

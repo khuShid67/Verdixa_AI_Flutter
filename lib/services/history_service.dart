@@ -1,13 +1,16 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/detection_history_model.dart';
+import '../config/app_config.dart';
 
 class HistoryService {
-  static const String baseUrl = "http://10.191.21.171:8000";
-
-  static Future<List<DetectionHistoryModel>> getHistory(String email) async {
+  static Future<List<DetectionHistoryModel>> getHistory(
+    String email,
+  ) async {
     final response = await http.get(
-      Uri.parse("$baseUrl/history?user_email=$email"),
+      Uri.parse(
+        "${AppConfig.baseUrl}/history?user_email=$email",
+      ),
     );
 
     if (response.statusCode == 200) {

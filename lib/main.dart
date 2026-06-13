@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+
 import 'screens/splash_screen.dart';
-import 'screens/home_screen.dart';
 import 'providers/theme_provider.dart';
 import 'providers/language_provider.dart';
 
@@ -14,15 +14,15 @@ void main() async {
 
   final languageProvider = LanguageProvider();
   await languageProvider.init();
-  
+
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider.value(
-          value: themeProvider,
+        ChangeNotifierProvider(
+          create: (_) => themeProvider,
         ),
-        ChangeNotifierProvider.value(
-          value: languageProvider,
+        ChangeNotifierProvider(
+          create: (_) => languageProvider,
         ),
       ],
       child: const PlantDiseaseApp(),
@@ -41,17 +41,30 @@ class PlantDiseaseApp extends StatelessWidget {
           debugShowCheckedModeBanner: false,
           title: 'Verdixa AI',
 
-          // 🌍 LANGUAGE
+          // 🌍 LANGUAGE CONTROL
           locale: languageProvider.locale,
 
           supportedLocales: const [
             Locale('en'),
             Locale('hi'),
-            Locale('gu'), // Gujarati
-            Locale('es'), // Spanish (example)
-            Locale('fr'),  // French (example)
-             Locale('de'), //German
+            Locale('gu'),
+            Locale('es'),
+            Locale('fr'),
+            Locale('de'),
           ],
+
+          // 🔥 IMPORTANT: proper fallback handling
+          localeResolutionCallback: (locale, supportedLocales) {
+            if (locale == null) return const Locale('en');
+
+            for (var supported in supportedLocales) {
+              if (supported.languageCode == locale.languageCode) {
+                return supported;
+              }
+            }
+
+            return const Locale('en');
+          },
 
           localizationsDelegates: const [
             GlobalMaterialLocalizations.delegate,
@@ -59,7 +72,7 @@ class PlantDiseaseApp extends StatelessWidget {
             GlobalCupertinoLocalizations.delegate,
           ],
 
-          // 🎨 THEMES
+          // 🎨 THEME
           theme: ThemeData(
             colorSchemeSeed: Colors.green,
             brightness: Brightness.light,

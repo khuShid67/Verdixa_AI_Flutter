@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/detection_history_model.dart';
 import '../services/recommendation_service.dart';
+import '../config/app_config.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io' show File;
 
@@ -14,40 +15,56 @@ class ScanDetailScreen extends StatefulWidget {
 }
 
 class _ScanDetailScreenState extends State<ScanDetailScreen> {
-  Map<String, dynamic>? recommendation;
+  Map<String, dynamic> recommendation = {};
   bool loading = true;
-
-  final String baseUrl = "http://10.191.21.171:8000";
 
   @override
   void initState() {
     super.initState();
-    loadRecommendation();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      loadRecommendation();
+    });
   }
 
   Future<void> loadRecommendation() async {
     try {
-      final data = await RecommendationService.get(
-        widget.scan.diseaseName,
-      );
+      final diseaseName = widget.scan.diseaseName.trim();
 
-      if (mounted) {
+      final raw = await RecommendationService.get(diseaseName);
+
+      if (!mounted) return;
+
+      if (raw == null) {
         setState(() {
-          recommendation = data;
+          recommendation = {};
           loading = false;
         });
+        return;
       }
-    } catch (_) {
-      if (mounted) {
-        setState(() {
-          recommendation = null;
-          loading = false;
-        });
-      }
+
+      final data = (raw is Map && raw["data"] != null)
+          ? raw["data"]
+          : raw;
+
+      setState(() {
+        recommendation = Map<String, dynamic>.from(data);
+        loading = false;
+      });
+    } catch (e) {
+      debugPrint("Recommendation error: $e");
+      setState(() {
+        recommendation = {};
+        loading = false;
+      });
     }
   }
 
-  // ================= IMAGE =================
+  String _safeText(dynamic value) {
+    if (value == null) return "not_available";
+    if (value is List) return value.join(", ");
+    return value.toString();
+  }
+
   Widget buildImage(String path) {
     final url = _buildUrl(path);
 
@@ -58,7 +75,9 @@ class _ScanDetailScreenState extends State<ScanDetailScreen> {
         width: double.infinity,
         errorBuilder: (_, __, ___) => _errorImage(),
       );
-    } else {
+    }
+
+    try {
       final file = File(path);
 
       if (file.existsSync()) {
@@ -68,20 +87,22 @@ class _ScanDetailScreenState extends State<ScanDetailScreen> {
           width: double.infinity,
           errorBuilder: (_, __, ___) => _errorImage(),
         );
-      } else {
-        return Image.network(
-          url,
-          fit: BoxFit.cover,
-          width: double.infinity,
-          errorBuilder: (_, __, ___) => _errorImage(),
-        );
       }
+    } catch (e) {
+      debugPrint("File error: $e");
     }
+
+    return Image.network(
+      url,
+      fit: BoxFit.cover,
+      width: double.infinity,
+      errorBuilder: (_, __, ___) => _errorImage(),
+    );
   }
 
   String _buildUrl(String path) {
     if (path.startsWith("http")) return path;
-    return "$baseUrl$path";
+    return "${AppConfig.baseUrl}$path";
   }
 
   Widget _errorImage() {
@@ -97,88 +118,74 @@ class _ScanDetailScreenState extends State<ScanDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final scan = widget.scan;
-    final color = Theme.of(context).colorScheme;
-
     final isWeb = MediaQuery.of(context).size.width > 700;
     final contentWidth = isWeb ? 700.0 : double.infinity;
-
-    if (loading) {
-      return Scaffold(
-        body: Center(child: CircularProgressIndicator(color: color.primary)),
-      );
-    }
 
     return Scaffold(
       appBar: AppBar(
         title: Text(_format(scan.diseaseName)),
         centerTitle: true,
       ),
+
       body: Center(
         child: ConstrainedBox(
           constraints: BoxConstraints(maxWidth: contentWidth),
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                // ================= IMAGE =================
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
-                  child: SizedBox(
-                    height: 260,
-                    width: double.infinity,
-                    child: buildImage(scan.imagePath),
+
+          child: loading
+              ? const Center(child: CircularProgressIndicator())
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: SizedBox(
+                          height: 260,
+                          width: double.infinity,
+                          child: buildImage(scan.imagePath),
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      _infoGrid(scan),
+
+                      const SizedBox(height: 20),
+
+                      _section("symptoms", recommendation["symptoms"], Icons.healing),
+                      _section("organic_treatment", recommendation["organic_treatment"], Icons.eco),
+                      _section("chemical_treatment", recommendation["chemical_treatment"], Icons.science),
+                      _section("prevention", recommendation["prevention"], Icons.shield),
+                    ],
                   ),
                 ),
-
-                const SizedBox(height: 20),
-
-                // ================= INFO GRID =================
-                _infoGrid(scan),
-
-                const SizedBox(height: 20),
-
-                _section("Symptoms", recommendation?["symptoms"], Icons.healing),
-                _section("Organic Treatment",
-                    recommendation?["organic_treatment"], Icons.eco),
-                _section("Chemical Treatment",
-                    recommendation?["chemical_treatment"], Icons.science),
-                _section("Prevention",
-                    recommendation?["prevention"], Icons.shield),
-              ],
-            ),
-          ),
         ),
       ),
     );
   }
 
-  // ================= INFO GRID =================
   Widget _infoGrid(DetectionHistoryModel scan) {
-    final items = [
-      _infoItem(Icons.local_florist, "Disease", _format(scan.diseaseName)),
-      _infoItem(Icons.percent, "Confidence",
-          "${(scan.confidence * 100).toStringAsFixed(1)}%"),
-      _infoItem(Icons.warning_amber, "Severity",
-          recommendation?["severity"] ?? "N/A"),
-      _infoItem(Icons.verified, "Status",
-          recommendation?["status"] ?? "N/A"),
-    ];
-
-    return GridView.builder(
+    return GridView(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: items.length,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         mainAxisSpacing: 12,
         crossAxisSpacing: 12,
         childAspectRatio: 1.2,
       ),
-      itemBuilder: (context, index) => items[index],
+
+      children: [
+        _infoItem("disease", _format(scan.diseaseName)),
+        _infoItem("confidence",
+            "${(scan.confidence * 100).toStringAsFixed(1)}%"),
+        _infoItem("severity", _safeText(recommendation["severity"])),
+        _infoItem("status", _safeText(recommendation["status"])),
+      ],
     );
   }
 
-  Widget _infoItem(IconData icon, String title, String value) {
+  Widget _infoItem(String title, String value) {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -188,40 +195,22 @@ class _ScanDetailScreenState extends State<ScanDetailScreen> {
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
             blurRadius: 8,
-          )
+          ),
         ],
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, size: 28, color: Theme.of(context).colorScheme.primary),
+          Text(title,
+              style: const TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 10),
-          Text(
-            title,
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            value,
-            textAlign: TextAlign.center,
-          ),
+          Text(value, textAlign: TextAlign.center),
         ],
       ),
     );
   }
 
-  // ================= SECTION =================
   Widget _section(String title, dynamic content, IconData icon) {
-    String text;
-
-    if (content == null) {
-      text = "Not available";
-    } else if (content is List) {
-      text = content.join(", ");
-    } else {
-      text = content.toString();
-    }
-
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       padding: const EdgeInsets.all(16),
@@ -246,7 +235,7 @@ class _ScanDetailScreenState extends State<ScanDetailScreen> {
             ],
           ),
           const SizedBox(height: 10),
-          Text(text),
+          Text(_safeText(content)),
         ],
       ),
     );

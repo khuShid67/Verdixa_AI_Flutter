@@ -33,12 +33,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Registration successful")),
+        const SnackBar(content: Text("registration_success")),
       );
       Navigator.pop(context);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("User already exists")),
+        const SnackBar(content: Text("user_exists")),
       );
     }
   }
@@ -73,14 +73,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         size: 70,
                         color: Colors.green,
                       ),
+
                       const SizedBox(height: 10),
+
                       const Text(
-                        "Create Account",
+                        "create_account",
                         style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
+
                       const SizedBox(height: 20),
 
                       // EMAIL
@@ -88,7 +91,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         controller: emailController,
                         keyboardType: TextInputType.emailAddress,
                         decoration: InputDecoration(
-                          labelText: "Email",
+                          labelText: "email",
                           prefixIcon: const Icon(Icons.email),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -103,7 +106,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         controller: passwordController,
                         obscureText: !isPasswordVisible,
                         decoration: InputDecoration(
-                          labelText: "Password",
+                          labelText: "password",
                           prefixIcon: const Icon(Icons.lock),
                           suffixIcon: IconButton(
                             icon: Icon(
@@ -113,7 +116,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             ),
                             onPressed: () {
                               setState(() {
-                                isPasswordVisible = !isPasswordVisible;
+                                isPasswordVisible =
+                                    !isPasswordVisible;
                               });
                             },
                           ),
@@ -141,10 +145,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               ? const CircularProgressIndicator(
                                   color: Colors.white,
                                 )
-                              : const Text(
-                                  "Register",
-                                  style: TextStyle(fontSize: 16),
-                                ),
+                              : const Text("register"),
                         ),
                       ),
                     ],

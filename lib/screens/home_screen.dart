@@ -51,7 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
       final usage = await UsageService.getUsage();
 
       if (usage >= 3) {
-        _showMessage("Free limit reached. Please login to continue scanning.");
+        _showMessage("Free Limit Reached");
         Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const LoginScreen()),
@@ -73,16 +73,18 @@ class _HomeScreenState extends State<HomeScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               const SizedBox(height: 10),
-              Text(
+
+              const TranslatedText(
                 "Scan Leaf Image",
-                style: theme.textTheme.titleMedium,
+                style: TextStyle(fontWeight: FontWeight.w600),
               ),
+
               const SizedBox(height: 10),
 
               ListTile(
                 leading: Icon(Icons.camera_alt,
                     color: theme.colorScheme.primary),
-                title: const Text("Camera"),
+                title: const TranslatedText("Camera"),
                 onTap: () {
                   Navigator.pop(context);
                   pickImage(ImageSource.camera);
@@ -92,7 +94,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ListTile(
                 leading: Icon(Icons.photo_library,
                     color: theme.colorScheme.primary),
-                title: const Text("Gallery"),
+                title: const TranslatedText("Gallery"),
                 onTap: () {
                   Navigator.pop(context);
                   pickImage(ImageSource.gallery);
@@ -111,8 +113,6 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() => isLoading = true);
 
     try {
-      // ❌ REMOVED LOGIN BLOCK (THIS WAS THE ISSUE)
-
       final email = await AuthService.currentUser();
 
       final result = await ApiService.predictDisease(
@@ -123,7 +123,7 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() => isLoading = false);
 
       if (result == null) {
-        _showMessage("Server error");
+        _showMessage("Server Error");
         return;
       }
 
@@ -143,13 +143,15 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     } catch (e) {
       setState(() => isLoading = false);
-      _showMessage("Something went wrong");
+      _showMessage("Something Wrong");
     }
   }
 
-  void _showMessage(String msg) {
+  void _showMessage(String key) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: TranslatedText(msg)),
+      SnackBar(
+        content: TranslatedText(key),
+      ),
     );
   }
 
@@ -163,16 +165,16 @@ class _HomeScreenState extends State<HomeScreen> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: selectImageSource,
         icon: const Icon(Icons.document_scanner),
-        label: const Text("Scan"),
+        label: const TranslatedText("Scan"),
       ),
 
       appBar: AppBar(
-        centerTitle: true,
+        centerTitle: false,
         title: Image.asset(
           isDark
-              ? '../assets/images/logo_dark.png'
-              : '../assets/images/logo_light.png',
-          height: 200,
+              ? './assets/images/logo_dark.png'
+              : './assets/images/logo_light.png',
+          height: 150,
         ),
         actions: [
           IconButton(
@@ -230,11 +232,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Row(
                   children: [
                     Icon(Icons.eco, size: 40, color: color.primary),
+
                     const SizedBox(width: 10),
+
                     Expanded(
-                      child: Text(
-                        "Upload a leaf image and get instant AI disease detection",
-                        style: theme.textTheme.bodyMedium,
+                      child: const TranslatedText(
+                        "Upload a leaf image and get instant AI detection",
                       ),
                     ),
                   ],
@@ -262,18 +265,24 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(25),
                     child: selectedImage == null
-                        ? Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.image_search,
-                                  size: 90, color: color.primary),
-                              const SizedBox(height: 10),
-                              Text("No image selected",
-                                  style: theme.textTheme.titleMedium),
-                              const SizedBox(height: 5),
-                              Text("Tap Scan to start analysis",
-                                  style: theme.textTheme.bodySmall),
-                            ],
+                        ? InkWell(
+                            onTap: selectImageSource,
+                            borderRadius: BorderRadius.circular(25),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.image_search,
+                                    size: 90, color: color.primary),
+
+                                const SizedBox(height: 10),
+
+                                const TranslatedText("Tap to Scan"),
+
+                                const SizedBox(height: 5),
+
+                                const TranslatedText("Use Camera Gallery"),
+                              ],
+                            ),
                           )
                         : kIsWeb
                             ? Image.memory(imageBytes!, fit: BoxFit.cover)
@@ -304,8 +313,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : const Icon(Icons.analytics),
-                  label: Text(
-                    isLoading ? "Analyzing..." : "Analyze Disease",
+
+                  label: TranslatedText(
+                    isLoading ? "Analyzing" : "Analyze Disease",
                   ),
                 ),
               ),

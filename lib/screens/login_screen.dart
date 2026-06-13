@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import 'register_screen.dart';
+import '../widgets/translated_text.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -32,7 +33,7 @@ class _LoginScreenState extends State<LoginScreen> {
       Navigator.of(context).pop(true);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Invalid credentials")),
+        const SnackBar(content: Text("Invalid Credentials")),
       );
     }
   }
@@ -67,7 +68,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         size: 70,
                         color: Colors.green,
                       ),
+
                       const SizedBox(height: 10),
+
                       const Text(
                         "Verdixa AI",
                         style: TextStyle(
@@ -75,9 +78,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
+
                       const SizedBox(height: 20),
 
-                      // EMAIL
+                      // EMAIL LABEL
                       TextField(
                         controller: emailController,
                         keyboardType: TextInputType.emailAddress,
@@ -92,7 +96,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                       const SizedBox(height: 15),
 
-                      // PASSWORD
+                      // PASSWORD LABEL
                       TextField(
                         controller: passwordController,
                         obscureText: !isPasswordVisible,
@@ -136,10 +140,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ? const CircularProgressIndicator(
                                   color: Colors.white,
                                 )
-                              : const Text(
-                                  "Login",
-                                  style: TextStyle(fontSize: 16),
-                                ),
+                              : const TranslatedText("Login"),
                         ),
                       ),
 
@@ -155,7 +156,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           );
                         },
-                        child: const Text("Create Account"),
+                        child: const TranslatedText("Create Account"),
                       ),
                     ],
                   ),

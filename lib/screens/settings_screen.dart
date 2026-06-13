@@ -50,7 +50,7 @@ class SettingsScreen extends StatelessWidget {
                       _radioTile(
                         context,
                         icon: Icons.light_mode,
-                        title: "Light Mode",
+                        title: "Light",
                         value: ThemeMode.light,
                         groupValue: themeProvider.themeMode,
                         onChanged: (value) =>
@@ -60,7 +60,7 @@ class SettingsScreen extends StatelessWidget {
                       _radioTile(
                         context,
                         icon: Icons.dark_mode,
-                        title: "Dark Mode",
+                        title: "Dark",
                         value: ThemeMode.dark,
                         groupValue: themeProvider.themeMode,
                         onChanged: (value) =>
@@ -70,7 +70,7 @@ class SettingsScreen extends StatelessWidget {
                       _radioTile(
                         context,
                         icon: Icons.phone_android,
-                        title: "System Default",
+                        title: "System",
                         value: ThemeMode.system,
                         groupValue: themeProvider.themeMode,
                         onChanged: (value) =>
@@ -98,11 +98,12 @@ class SettingsScreen extends StatelessWidget {
                         title: language.nativeName,
                         subtitle: language.name,
                         value: language.code,
-                        groupValue:
-                            langProvider.locale.languageCode,
+                        groupValue: langProvider.locale.languageCode,
                         onChanged: (value) {
                           if (value != null) {
-                            langProvider.setLanguage(value);
+                            context
+                                .read<LanguageProvider>()
+                                .setLanguage(value);
                           }
                         },
                       );
@@ -117,7 +118,7 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  /// ================= SECTION CARD =================
+  // ================= SECTION CARD =================
   Widget _sectionCard(
     BuildContext context, {
     required String title,
@@ -145,7 +146,9 @@ class SettingsScreen extends StatelessWidget {
             children: [
               Icon(icon, color: color.primary),
               const SizedBox(width: 8),
-              Text(
+
+              /// translated section title
+              TranslatedText(
                 title,
                 style: Theme.of(context)
                     .textTheme
@@ -161,7 +164,7 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  /// ================= THEME RADIO TILE =================
+  // ================= THEME RADIO TILE =================
   Widget _radioTile(
     BuildContext context, {
     required IconData icon,
@@ -175,17 +178,19 @@ class SettingsScreen extends StatelessWidget {
     return RadioListTile<ThemeMode>(
       contentPadding: EdgeInsets.zero,
       secondary: Icon(icon, color: color.primary),
-      title: Text(
+
+      title: TranslatedText(
         title,
         style: const TextStyle(fontWeight: FontWeight.w600),
       ),
+
       value: value,
       groupValue: groupValue,
       onChanged: onChanged,
     );
   }
 
-  /// ================= LANGUAGE TILE =================
+  // ================= LANGUAGE TILE =================
   Widget _languageTile(
     BuildContext context, {
     required String title,
@@ -199,11 +204,14 @@ class SettingsScreen extends StatelessWidget {
     return RadioListTile<String>(
       contentPadding: EdgeInsets.zero,
       secondary: Icon(Icons.language, color: color.primary),
-      title: Text(
+
+      title: TranslatedText(
         title,
         style: const TextStyle(fontWeight: FontWeight.w600),
       ),
-      subtitle: Text(subtitle),
+
+      subtitle: TranslatedText(subtitle),
+
       value: value,
       groupValue: groupValue,
       onChanged: onChanged,

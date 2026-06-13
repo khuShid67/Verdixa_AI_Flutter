@@ -21,65 +21,64 @@ class TranslatedText extends StatefulWidget {
   });
 
   @override
-  State<TranslatedText> createState() =>
-      _TranslatedTextState();
+  State<TranslatedText> createState() => _TranslatedTextState();
 }
 
-class _TranslatedTextState
-    extends State<TranslatedText> {
-  String translated = "";
-  String currentLanguage = "";
+class _TranslatedTextState extends State<TranslatedText> {
+  String _translated = '';
+  bool _loading = false;
+  String _currentLang = '';
+  int _requestId = 0;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    final language =
-        context.watch<LanguageProvider>()
-            .locale
-            .languageCode;
+    final lang =
+        context.watch<LanguageProvider>().locale.languageCode;
 
-    if (language != currentLanguage) {
-      currentLanguage = language;
-      translated = ""; // reset old translation
-      _translate();
-    }
+    _updateTranslation(lang, widget.text);
   }
 
   @override
-  void didUpdateWidget(
-    covariant TranslatedText oldWidget,
-  ) {
+  void didUpdateWidget(covariant TranslatedText oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    if (oldWidget.text != widget.text) {
-      translated = "";
-      _translate();
+    final lang =
+        context.read<LanguageProvider>().locale.languageCode;
+
+    if (oldWidget.text != widget.text ||
+        lang != _currentLang) {
+      _updateTranslation(lang, widget.text);
     }
   }
 
-  Future<void> _translate() async {
-    if (widget.text.trim().isEmpty) return;
+  void _updateTranslation(String lang, String text) {
+    if (lang == _currentLang && text == widget.text) return;
 
-    final result =
-        await TranslationService.translate(
-      widget.text,
-      currentLanguage,
-    );
+    _currentLang = lang;
+    _loading = true;
 
-    if (!mounted) return;
+    final int requestId = ++_requestId;
 
-    setState(() {
-      translated = result;
+    TranslationService.translate(text, lang).then((result) {
+      if (!mounted || requestId != _requestId) return;
+
+      setState(() {
+        _translated = result;
+        _loading = false;
+      });
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final displayText = _loading
+        ? widget.text // or you can show "..."
+        : (_translated.isEmpty ? widget.text : _translated);
+
     return Text(
-      translated.isEmpty
-          ? widget.text
-          : translated,
+      displayText,
       style: widget.style,
       textAlign: widget.textAlign,
       maxLines: widget.maxLines,

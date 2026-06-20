@@ -81,7 +81,7 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("scan_history"),
+        title: const Text("Scan History"),
         centerTitle: true,
       ),
 
@@ -110,7 +110,7 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen> {
                   )
                 : scans.isEmpty
                     ? const Center(
-                        child: Text("no_scans"),
+                        child: Text("No Scans"),
                       )
                     : ListView.builder(
                         padding: const EdgeInsets.all(12),
@@ -197,7 +197,7 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen> {
                       const SizedBox(width: 6),
 
                       Text(
-                        "confidence_label: ${(scan.confidence * 100).toStringAsFixed(1)}%",
+                        "Confidence Label: ${(scan.confidence * 100).toStringAsFixed(1)}%",
                         style: const TextStyle(fontSize: 13),
                       ),
                     ],

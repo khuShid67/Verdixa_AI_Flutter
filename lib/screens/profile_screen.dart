@@ -97,7 +97,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const SizedBox(height: 5),
 
                     Text(
-                      "App User",
+                      "Verdixa AI User",
                       style: theme.textTheme.bodySmall,
                     ),
                   ],

@@ -5,7 +5,7 @@ import '../models/user_model.dart';
 import 'usage_service.dart';
 
 class AuthService {
-  static const String baseUrl = "http://10.230.188.171:8000";
+  static const String baseUrl = "http://10.191.21.171:8000";
 
   static const String _loginKey = "is_logged_in";
   static const String _userKey = "current_user";

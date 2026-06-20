@@ -60,7 +60,7 @@ class _ScanDetailScreenState extends State<ScanDetailScreen> {
   }
 
   String _safeText(dynamic value) {
-    if (value == null) return "not_available";
+    if (value == null) return "Not Available";
     if (value is List) return value.join(", ");
     return value.toString();
   }
@@ -152,10 +152,10 @@ class _ScanDetailScreenState extends State<ScanDetailScreen> {
 
                       const SizedBox(height: 20),
 
-                      _section("symptoms", recommendation["symptoms"], Icons.healing),
-                      _section("organic_treatment", recommendation["organic_treatment"], Icons.eco),
-                      _section("chemical_treatment", recommendation["chemical_treatment"], Icons.science),
-                      _section("prevention", recommendation["prevention"], Icons.shield),
+                      _section("Symptoms", recommendation["symptoms"], Icons.healing),
+                      _section("Organic Treatment", recommendation["organic_treatment"], Icons.eco),
+                      _section("Chemical Treatment", recommendation["chemical_treatment"], Icons.science),
+                      _section("Prevention", recommendation["prevention"], Icons.shield),
                     ],
                   ),
                 ),
@@ -176,11 +176,11 @@ class _ScanDetailScreenState extends State<ScanDetailScreen> {
       ),
 
       children: [
-        _infoItem("disease", _format(scan.diseaseName)),
-        _infoItem("confidence",
+        _infoItem("Disease", _format(scan.diseaseName)),
+        _infoItem("Confidence",
             "${(scan.confidence * 100).toStringAsFixed(1)}%"),
-        _infoItem("severity", _safeText(recommendation["severity"])),
-        _infoItem("status", _safeText(recommendation["status"])),
+        _infoItem("Severity", _safeText(recommendation["severity"])),
+        _infoItem("Status", _safeText(recommendation["status"])),
       ],
     );
   }

@@ -17,7 +17,7 @@ class ResultScreen extends StatelessWidget {
   });
 
   String formatDisease(String value) {
-    if (value.isEmpty) return "unknown_disease";
+    if (value.isEmpty) return "Unknown Disease";
 
     if (value.contains("___")) {
       value = value.split("___").last;
@@ -61,7 +61,7 @@ class ResultScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const TranslatedText("analysis_result"),
+        title: const TranslatedText("Analysis Result"),
         centerTitle: true,
       ),
 
@@ -154,7 +154,7 @@ class ResultScreen extends StatelessWidget {
 
           TranslatedText(
             result.prediction.isEmpty
-                ? "unknown_disease"
+                ? "Unknown Disease"
                 : formatDisease(result.prediction),
             textAlign: TextAlign.center,
             style: theme.textTheme.titleLarge?.copyWith(
@@ -167,10 +167,10 @@ class ResultScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _chip(Icons.verified, "status", result.status),
+              _chip(Icons.verified, "Status", result.status),
               _chip(
                 Icons.percent,
-                "confidence",
+                "Confidence",
                 "${result.confidence.toStringAsFixed(2)}%",
               ),
             ],
@@ -214,7 +214,7 @@ class ResultScreen extends StatelessWidget {
 
     return _sectionCard(
       context,
-      title: "nearest_matching_diseases",
+      title: "Nearest Matching Diseases",
       icon: Icons.search,
       child: result.nearestDiseases != null &&
               result.nearestDiseases!.isNotEmpty
@@ -228,7 +228,7 @@ class ResultScreen extends StatelessWidget {
                   )
                   .toList(),
             )
-          : const TranslatedText("no_similar_diseases"),
+          : const TranslatedText("No Similar Diseases"),
     );
   }
 
@@ -236,13 +236,13 @@ class ResultScreen extends StatelessWidget {
   Widget _infoCard(BuildContext context) {
     return _sectionCard(
       context,
-      title: "disease_information",
+      title: "Disease Information",
       icon: Icons.info_outline,
       child: Column(
         children: result.recommendation!.entries
             .where((e) =>
-                e.key.toLowerCase() != "plant" &&
-                e.key.toLowerCase() != "description")
+                e.key.toLowerCase() != "Plant" &&
+                e.key.toLowerCase() != "Description")
             .map(
               (entry) => Container(
                 margin: const EdgeInsets.only(bottom: 12),
@@ -283,7 +283,7 @@ class ResultScreen extends StatelessWidget {
   Widget _messageCard(BuildContext context) {
     return _sectionCard(
       context,
-      title: "message",
+      title: "Message",
       icon: Icons.message,
       child: TranslatedText(result.message!),
     );

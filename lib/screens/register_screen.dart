@@ -33,12 +33,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("registration_success")),
+        const SnackBar(content: Text("Registration Success")),
       );
       Navigator.pop(context);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("user_exists")),
+        const SnackBar(content: Text("User Exists")),
       );
     }
   }
@@ -77,7 +77,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       const SizedBox(height: 10),
 
                       const Text(
-                        "create_account",
+                        "Create Account",
                         style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
@@ -91,7 +91,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         controller: emailController,
                         keyboardType: TextInputType.emailAddress,
                         decoration: InputDecoration(
-                          labelText: "email",
+                          labelText: "Email",
                           prefixIcon: const Icon(Icons.email),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -106,7 +106,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         controller: passwordController,
                         obscureText: !isPasswordVisible,
                         decoration: InputDecoration(
-                          labelText: "password",
+                          labelText: "Password",
                           prefixIcon: const Icon(Icons.lock),
                           suffixIcon: IconButton(
                             icon: Icon(
@@ -145,7 +145,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               ? const CircularProgressIndicator(
                                   color: Colors.white,
                                 )
-                              : const Text("register"),
+                              : const Text("Register"),
                         ),
                       ),
                     ],

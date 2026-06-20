@@ -127,6 +127,18 @@ class _HomeScreenState extends State<HomeScreen> {
         return;
       }
 
+      // ❌ NOT A LEAF CHECK
+      if (result.success == false && result.message == "Not a leaf") {
+        _showMessage("Upload a leaf image");
+        return; // stay on same screen
+      }
+
+      // (optional safety check)
+      if (result.prediction.isEmpty) {
+        _showMessage("Invalid result");
+        return;
+      }
+
       final loggedIn = await AuthService.isLoggedIn();
       if (!loggedIn) {
         await UsageService.incrementUsage();

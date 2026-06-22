@@ -73,12 +73,10 @@ class _HomeScreenState extends State<HomeScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               const SizedBox(height: 10),
-
               const TranslatedText(
                 "Scan Leaf Image",
                 style: TextStyle(fontWeight: FontWeight.w600),
               ),
-
               const SizedBox(height: 10),
 
               ListTile(
@@ -127,13 +125,11 @@ class _HomeScreenState extends State<HomeScreen> {
         return;
       }
 
-      // ❌ NOT A LEAF CHECK
       if (result.success == false && result.message == "Not a leaf") {
-        _showMessage("Upload a leaf image");
-        return; // stay on same screen
+        _showMessage("Not A Leaf Image");
+        return;
       }
 
-      // (optional safety check)
       if (result.prediction.isEmpty) {
         _showMessage("Invalid result");
         return;
@@ -161,9 +157,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _showMessage(String key) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: TranslatedText(key),
-      ),
+      SnackBar(content: TranslatedText(key)),
     );
   }
 
@@ -172,6 +166,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final theme = Theme.of(context);
     final color = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
+    final isWeb = kIsWeb;
 
     return Scaffold(
       floatingActionButton: FloatingActionButton.extended(
@@ -181,19 +176,17 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
 
       appBar: AppBar(
-        centerTitle: false,
         title: Image.asset(
           isDark
               ? './assets/images/logo_dark.png'
               : './assets/images/logo_light.png',
-          height: 150,
+          height: 120,
         ),
         actions: [
           IconButton(
             icon: const Icon(Icons.person),
             onPressed: () async {
               final loggedIn = await AuthService.isLoggedIn();
-
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -229,114 +222,161 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
 
-        child: Column(
-          children: [
-            const SizedBox(height: 20),
+        child: isWeb
+            ? _buildWebUI(context, color)
+            : _buildMobileUI(context, color),
+      ),
+    );
+  }
 
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+  // ========================= WEB UI (NEW + FIXED) =========================
+  Widget _buildWebUI(BuildContext context, ColorScheme color) {
+    return Center(
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 1200),
+        padding: const EdgeInsets.all(20),
+        child: Row(
+          children: [
+            // LEFT PANEL
+            Expanded(
               child: Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: color.primaryContainer.withOpacity(0.4),
+                  color: color.primaryContainer.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: Row(
-                  children: [
-                    Icon(Icons.eco, size: 40, color: color.primary),
-
-                    const SizedBox(width: 10),
-
-                    Expanded(
-                      child: const TranslatedText(
-                        "Upload a leaf image and get instant AI detection",
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Icon(Icons.eco, size: 80),
+                    SizedBox(height: 20),
+                    TranslatedText(
+                      "AI Leaf Disease Detection",
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
                       ),
+                    ),
+                    SizedBox(height: 10),
+                    TranslatedText(
+                      "Upload a leaf image and analyze disease instantly.",
                     ),
                   ],
                 ),
               ),
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(width: 20),
 
+            // CENTER IMAGE UPLOAD
             Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: color.surface,
-                    borderRadius: BorderRadius.circular(25),
-                    boxShadow: [
-                      BoxShadow(
-                        blurRadius: 12,
-                        color: color.shadow.withOpacity(0.1),
+              flex: 2,
+              child: Column(
+                children: [
+                  Expanded(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: color.surface,
+                        borderRadius: BorderRadius.circular(20),
                       ),
-                    ],
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: selectedImage == null
+                            ? InkWell(
+                                onTap: selectImageSource,
+                                child: const Center(
+                                  child: TranslatedText(
+                                    "Click to Upload Image",
+                                  ),
+                                ),
+                              )
+                            : Image.memory(imageBytes!, fit: BoxFit.cover),
+                      ),
+                    ),
                   ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(25),
-                    child: selectedImage == null
-                        ? InkWell(
-                            onTap: selectImageSource,
-                            borderRadius: BorderRadius.circular(25),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.image_search,
-                                    size: 90, color: color.primary),
 
-                                const SizedBox(height: 10),
+                  const SizedBox(height: 15),
 
-                                const TranslatedText("Tap to Scan"),
-
-                                const SizedBox(height: 5),
-
-                                const TranslatedText("Use Camera Gallery"),
-                              ],
-                            ),
-                          )
-                        : kIsWeb
-                            ? Image.memory(imageBytes!, fit: BoxFit.cover)
-                            : Image.file(
-                                File(selectedImage!.path),
-                                fit: BoxFit.cover,
-                              ),
+                  // ✅ ANALYZE BUTTON (FIXED MISSING BUTTON)
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton.icon(
+                      onPressed: selectedImage == null || isLoading
+                          ? null
+                          : analyzeLeaf,
+                      icon: isLoading
+                          ? const CircularProgressIndicator(strokeWidth: 2)
+                          : const Icon(Icons.analytics),
+                      label: const TranslatedText("Analyze Image"),
+                    ),
                   ),
-                ),
+                ],
               ),
             ),
-
-            const SizedBox(height: 10),
-
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: SizedBox(
-                width: double.infinity,
-                height: 55,
-                child: ElevatedButton.icon(
-                  onPressed: selectedImage == null || isLoading
-                      ? null
-                      : analyzeLeaf,
-                  icon: isLoading
-                      ? const SizedBox(
-                          height: 18,
-                          width: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.analytics),
-
-                  label: TranslatedText(
-                    isLoading ? "Analyzing" : "Analyze Disease",
-                  ),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 15),
           ],
         ),
       ),
+    );
+  }
+
+  // ========================= MOBILE UI (UNCHANGED) =========================
+  Widget _buildMobileUI(BuildContext context, ColorScheme color) {
+    return Column(
+      children: [
+        const SizedBox(height: 20),
+
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: color.primaryContainer.withOpacity(0.4),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: const TranslatedText(
+              "Upload a leaf image and get instant AI detection",
+            ),
+          ),
+        ),
+
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Container(
+              decoration: BoxDecoration(
+                color: color.surface,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: selectedImage == null
+                  ? InkWell(
+                      onTap: selectImageSource,
+                      child: const Center(
+                        child: TranslatedText("Tap to Scan"),
+                      ),
+                    )
+                  : Image.file(File(selectedImage!.path)),
+            ),
+          ),
+        ),
+
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: SizedBox(
+            width: double.infinity,
+            height: 55,
+            child: ElevatedButton.icon(
+              onPressed:
+                  selectedImage == null || isLoading ? null : analyzeLeaf,
+              icon: const Icon(Icons.analytics),
+              label: TranslatedText(
+                isLoading ? "Analyzing" : "Analyze Disease",
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

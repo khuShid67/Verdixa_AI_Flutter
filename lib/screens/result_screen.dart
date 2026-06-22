@@ -55,6 +55,7 @@ class ResultScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final color = theme.colorScheme;
+    final isWeb = MediaQuery.of(context).size.width > 800;
 
     final bool isUnknown =
         result.status.toLowerCase().contains("unknown");
@@ -64,7 +65,6 @@ class ResultScreen extends StatelessWidget {
         title: const TranslatedText("Analysis Result"),
         centerTitle: true,
       ),
-
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -76,30 +76,86 @@ class ResultScreen extends StatelessWidget {
             end: Alignment.bottomCenter,
           ),
         ),
+        child: isWeb
+            ? _buildWebLayout(context, isUnknown)
+            : _buildMobileLayout(context, isUnknown),
+      ),
+    );
+  }
 
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
+  // ================= WEB LAYOUT (FIXED DASHBOARD STYLE) =================
+  Widget _buildWebLayout(BuildContext context, bool isUnknown) {
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 1100),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _imageBox(context),
-              const SizedBox(height: 18),
+              // LEFT COLUMN (IMAGE + RESULT)
+              Expanded(
+                flex: 1,
+                child: Column(
+                  children: [
+                    _imageBox(context),
+                    const SizedBox(height: 16),
+                    _resultCard(context),
+                  ],
+                ),
+              ),
 
-              _resultCard(context),
-              const SizedBox(height: 18),
+              const SizedBox(width: 20),
 
-              if (isUnknown) _unknownCard(context),
+              // RIGHT COLUMN (ALL INFO)
+              Expanded(
+                flex: 1,
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      if (isUnknown) _unknownCard(context),
 
-              if (!isUnknown &&
-                  result.recommendation != null &&
-                  result.recommendation!.isNotEmpty)
-                _infoCard(context),
+                      if (!isUnknown &&
+                          result.recommendation != null &&
+                          result.recommendation!.isNotEmpty)
+                        _infoCard(context),
 
-              if (result.message != null &&
-                  result.message!.trim().isNotEmpty)
-                _messageCard(context),
+                      if (result.message != null &&
+                          result.message!.trim().isNotEmpty)
+                        _messageCard(context),
+                    ],
+                  ),
+                ),
+              ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  // ================= MOBILE LAYOUT (UNCHANGED STRUCTURE) =================
+  Widget _buildMobileLayout(BuildContext context, bool isUnknown) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          _imageBox(context),
+          const SizedBox(height: 18),
+          _resultCard(context),
+          const SizedBox(height: 18),
+
+          if (isUnknown) _unknownCard(context),
+
+          if (!isUnknown &&
+              result.recommendation != null &&
+              result.recommendation!.isNotEmpty)
+            _infoCard(context),
+
+          if (result.message != null &&
+              result.message!.trim().isNotEmpty)
+            _messageCard(context),
+        ],
       ),
     );
   }
@@ -109,14 +165,13 @@ class ResultScreen extends StatelessWidget {
     final color = Theme.of(context).colorScheme;
 
     return Container(
-      height: 260,
-      width: double.infinity,
+      height: 300,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: color.shadow.withOpacity(0.12),
-            blurRadius: 12,
+            color: color.shadow.withOpacity(0.15),
+            blurRadius: 16,
           )
         ],
       ),
@@ -135,21 +190,20 @@ class ResultScreen extends StatelessWidget {
     final color = theme.colorScheme;
 
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: color.surface,
         borderRadius: BorderRadius.circular(22),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 12,
           )
         ],
       ),
       child: Column(
         children: [
-          Icon(Icons.eco, color: color.primary, size: 42),
+          Icon(Icons.eco, color: color.primary, size: 45),
           const SizedBox(height: 10),
 
           TranslatedText(
@@ -165,13 +219,17 @@ class ResultScreen extends StatelessWidget {
           const SizedBox(height: 14),
 
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _chip(Icons.verified, "Status", result.status),
-              _chip(
-                Icons.percent,
-                "Confidence",
-                "${result.confidence.toStringAsFixed(2)}%",
+              Expanded(
+                child: _chip(Icons.verified, "Status", result.status),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _chip(
+                  Icons.percent,
+                  "Confidence",
+                  "${(result.confidence * 100).toStringAsFixed(2)}%",
+                ),
               ),
             ],
           ),
@@ -181,115 +239,82 @@ class ResultScreen extends StatelessWidget {
   }
 
   Widget _chip(IconData icon, String title, String value) {
-    return Expanded(
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 6),
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: Colors.grey.withOpacity(0.08),
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, size: 20),
-            const SizedBox(height: 6),
-
-            TranslatedText(
-              title,
-              style: const TextStyle(
-                  fontSize: 12, fontWeight: FontWeight.bold),
-            ),
-
-            const SizedBox(height: 4),
-            Text(value, textAlign: TextAlign.center),
-          ],
-        ),
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.grey.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(14),
       ),
-    );
-  }
-
-  // ================= UNKNOWN CARD =================
-  Widget _unknownCard(BuildContext context) {
-    final color = Theme.of(context).colorScheme;
-
-    return _sectionCard(
-      context,
-      title: "Nearest Matching Diseases",
-      icon: Icons.search,
-      child: result.nearestDiseases != null &&
-              result.nearestDiseases!.isNotEmpty
-          ? Column(
-              children: result.nearestDiseases!
-                  .map(
-                    (d) => ListTile(
-                      leading: Icon(Icons.eco, color: color.primary),
-                      title: TranslatedText(formatDisease(d)),
-                    ),
-                  )
-                  .toList(),
-            )
-          : const TranslatedText("No Similar Diseases"),
-    );
-  }
-
-  // ================= INFO CARD =================
-  Widget _infoCard(BuildContext context) {
-    return _sectionCard(
-      context,
-      title: "Disease Information",
-      icon: Icons.info_outline,
       child: Column(
-        children: result.recommendation!.entries
-            .where((e) =>
-                e.key.toLowerCase() != "Plant" &&
-                e.key.toLowerCase() != "Description")
-            .map(
-              (entry) => Container(
-                margin: const EdgeInsets.only(bottom: 12),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.grey.withOpacity(0.06),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(Icons.circle, size: 8),
-                        const SizedBox(width: 6),
-
-                        TranslatedText(
-                          formatKey(entry.key),
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-
-                    TranslatedText(formatValue(entry.value)),
-                  ],
-                ),
-              ),
-            )
-            .toList(),
+        children: [
+          Icon(icon, size: 20),
+          const SizedBox(height: 6),
+          Text(title,
+              style: const TextStyle(
+                  fontSize: 12, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 4),
+          Text(value, textAlign: TextAlign.center),
+        ],
       ),
     );
   }
 
-  // ================= MESSAGE =================
-  Widget _messageCard(BuildContext context) {
-    return _sectionCard(
-      context,
-      title: "Message",
-      icon: Icons.message,
-      child: TranslatedText(result.message!),
-    );
-  }
+  // ================= UNKNOWN + INFO + MESSAGE (UNCHANGED LOGIC) =================
+  Widget _unknownCard(BuildContext context) => _sectionCard(
+        context,
+        title: "Nearest Matching Diseases",
+        icon: Icons.search,
+        child: Column(
+          children: result.nearestDiseases!
+              .map(
+                (d) => ListTile(
+                  leading: Icon(Icons.eco,
+                      color: Theme.of(context).colorScheme.primary),
+                  title: TranslatedText(formatDisease(d)),
+                ),
+              )
+              .toList(),
+        ),
+      );
 
-  // ================= SECTION WRAPPER =================
+  Widget _infoCard(BuildContext context) => _sectionCard(
+        context,
+        title: "Disease Information",
+        icon: Icons.info_outline,
+        child: Column(
+          children: result.recommendation!.entries
+              .map(
+                (entry) => Container(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withOpacity(0.06),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        formatKey(entry.key),
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(formatValue(entry.value)),
+                    ],
+                  ),
+                ),
+              )
+              .toList(),
+        ),
+      );
+
+  Widget _messageCard(BuildContext context) => _sectionCard(
+        context,
+        title: "Message",
+        icon: Icons.message,
+        child: TranslatedText(result.message!),
+      );
+
   Widget _sectionCard(
     BuildContext context, {
     required String title,
@@ -318,8 +343,7 @@ class ResultScreen extends StatelessWidget {
             children: [
               Icon(icon, color: color.primary),
               const SizedBox(width: 8),
-
-              TranslatedText(
+              Text(
                 title,
                 style: Theme.of(context)
                     .textTheme

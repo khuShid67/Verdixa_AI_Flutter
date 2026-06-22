@@ -53,93 +53,123 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
 
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              const SizedBox(height: 20),
-
-              /// PROFILE CARD
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: color.surface,
-                  borderRadius: BorderRadius.circular(25),
-                  boxShadow: [
-                    BoxShadow(
-                      color: color.shadow.withOpacity(0.1),
-                      blurRadius: 12,
-                    )
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    CircleAvatar(
-                      radius: 35,
-                      backgroundColor: color.primaryContainer,
-                      child: Icon(
-                        Icons.person,
-                        size: 35,
-                        color: color.primary,
-                      ),
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    Text(
-                      email ?? "Guest",
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-
-                    const SizedBox(height: 5),
-
-                    Text(
-                      "Verdixa AI User",
-                      style: theme.textTheme.bodySmall,
-                    ),
-                  ],
-                ),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 900),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  _profileHeader(context),
+                  const SizedBox(height: 25),
+                  _actionList(context),
+                ],
               ),
-
-              const SizedBox(height: 25),
-
-              /// ACTION CARDS
-              _buildCard(
-                context,
-                icon: Icons.history,
-                title: "My Scans",
-                subtitle: "View History",
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const ScanHistoryScreen(),
-                    ),
-                  );
-                },
-              ),
-
-              const SizedBox(height: 12),
-
-              _buildCard(
-                context,
-                icon: Icons.logout,
-                title: "Logout",
-                subtitle: "Sign Out",
-                isDanger: true,
-                onTap: logout,
-              ),
-            ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildCard(
+  // ================= PROFILE HEADER =================
+  Widget _profileHeader(BuildContext context) {
+    final theme = Theme.of(context);
+    final color = theme.colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.all(25),
+      decoration: BoxDecoration(
+        color: color.surface,
+        borderRadius: BorderRadius.circular(25),
+        boxShadow: [
+          BoxShadow(
+            color: color.shadow.withOpacity(0.12),
+            blurRadius: 18,
+          )
+        ],
+      ),
+      child: Column(
+        children: [
+          CircleAvatar(
+            radius: 42,
+            backgroundColor: color.primaryContainer,
+            child: Icon(
+              Icons.person,
+              size: 42,
+              color: color.primary,
+            ),
+          ),
+
+          const SizedBox(height: 14),
+
+          Text(
+            email ?? "Guest User",
+            textAlign: TextAlign.center,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+
+          const SizedBox(height: 6),
+
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 6,
+            ),
+            decoration: BoxDecoration(
+              color: color.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              "Verdixa AI User",
+              style: TextStyle(
+                color: color.primary,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ================= ACTION LIST =================
+  Widget _actionList(BuildContext context) {
+    return Column(
+      children: [
+        _card(
+          context,
+          icon: Icons.history,
+          title: "My Scans",
+          subtitle: "View scan history",
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const ScanHistoryScreen(),
+              ),
+            );
+          },
+        ),
+
+        const SizedBox(height: 14),
+
+        _card(
+          context,
+          icon: Icons.logout,
+          title: "Logout",
+          subtitle: "Sign out from account",
+          isDanger: true,
+          onTap: logout,
+        ),
+      ],
+    );
+  }
+
+  // ================= MODERN CARD =================
+  Widget _card(
     BuildContext context, {
     required IconData icon,
     required String title,
@@ -155,27 +185,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
       borderRadius: BorderRadius.circular(20),
 
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
           color: color.surface,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
               color: color.shadow.withOpacity(0.08),
-              blurRadius: 10,
-            ),
+              blurRadius: 12,
+            )
           ],
         ),
 
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: isDanger
                     ? color.errorContainer
                     : color.primaryContainer,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(14),
               ),
               child: Icon(
                 icon,
@@ -196,7 +226,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
 
-                  const SizedBox(height: 3),
+                  const SizedBox(height: 4),
 
                   Text(
                     subtitle,

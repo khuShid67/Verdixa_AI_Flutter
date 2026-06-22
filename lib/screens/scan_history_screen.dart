@@ -76,15 +76,13 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isWeb = MediaQuery.of(context).size.width > 700;
-    final contentWidth = isWeb ? 800.0 : double.infinity;
+    final isWeb = MediaQuery.of(context).size.width > 800;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text("Scan History"),
         centerTitle: true,
       ),
-
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -102,34 +100,121 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen> {
 
         child: Center(
           child: ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: contentWidth),
+            constraints: const BoxConstraints(maxWidth: 1100),
 
             child: loading
-                ? const Center(
-                    child: CircularProgressIndicator(),
-                  )
+                ? const Center(child: CircularProgressIndicator())
                 : scans.isEmpty
                     ? const Center(
-                        child: Text("No Scans"),
+                        child: Text(
+                          "No Scans Yet",
+                          style: TextStyle(fontSize: 16),
+                        ),
                       )
-                    : ListView.builder(
-                        padding: const EdgeInsets.all(12),
-                        itemCount: scans.length,
-                        itemBuilder: (context, index) {
-                          final scan = scans[index];
-                          return _scanCard(context, scan);
-                        },
-                      ),
+                    : isWeb
+                        ? _buildWebGrid()
+                        : _buildMobileList(),
           ),
         ),
       ),
     );
   }
 
-  Widget _scanCard(
-    BuildContext context,
-    DetectionHistoryModel scan,
-  ) {
+  // =========================
+  // WEB UI (NEW DASHBOARD GRID)
+  // =========================
+  Widget _buildWebGrid() {
+    return GridView.builder(
+      padding: const EdgeInsets.all(20),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        mainAxisSpacing: 16,
+        crossAxisSpacing: 16,
+        childAspectRatio: 3.5,
+      ),
+      itemCount: scans.length,
+      itemBuilder: (context, index) {
+        return _webCard(scans[index]);
+      },
+    );
+  }
+
+  Widget _webCard(DetectionHistoryModel scan) {
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ScanDetailScreen(scan: scan),
+          ),
+        );
+      },
+      borderRadius: BorderRadius.circular(20),
+
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 12,
+            )
+          ],
+        ),
+
+        child: Row(
+          children: [
+            buildImage(scan.imagePath),
+
+            const SizedBox(width: 15),
+
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    formatDiseaseName(scan.diseaseName),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  Text(
+                    "Confidence: ${(scan.confidence * 100).toStringAsFixed(1)}%",
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                ],
+              ),
+            ),
+
+            const Icon(Icons.arrow_forward_ios, size: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // =========================
+  // MOBILE UI (UNCHANGED)
+  // =========================
+  Widget _buildMobileList() {
+    return ListView.builder(
+      padding: const EdgeInsets.all(12),
+      itemCount: scans.length,
+      itemBuilder: (context, index) {
+        final scan = scans[index];
+        return _scanCard(scan);
+      },
+    );
+  }
+
+  Widget _scanCard(DetectionHistoryModel scan) {
     return GestureDetector(
       onTap: () {
         Navigator.push(

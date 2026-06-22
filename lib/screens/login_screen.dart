@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+
 import '../services/auth_service.dart';
 import 'register_screen.dart';
 import '../widgets/translated_text.dart';
@@ -41,127 +43,87 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF1B5E20), Color(0xFF66BB6A)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
-        child: Center(
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Card(
-                elevation: 10,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
+      appBar: AppBar(title: const TranslatedText("Login")),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 420),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Icon(Icons.eco, size: 70, color: Colors.green),
+                const SizedBox(height: 10),
+
+                const Text(
+                  "Verdixa AI",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.local_florist,
-                        size: 70,
-                        color: Colors.green,
-                      ),
 
-                      const SizedBox(height: 10),
+                const SizedBox(height: 25),
 
-                      const Text(
-                        "Verdixa AI",
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-
-                      const SizedBox(height: 20),
-
-                      // EMAIL LABEL
-                      TextField(
-                        controller: emailController,
-                        keyboardType: TextInputType.emailAddress,
-                        decoration: InputDecoration(
-                          labelText: "Email",
-                          prefixIcon: const Icon(Icons.email),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 15),
-
-                      // PASSWORD LABEL
-                      TextField(
-                        controller: passwordController,
-                        obscureText: !isPasswordVisible,
-                        decoration: InputDecoration(
-                          labelText: "Password",
-                          prefixIcon: const Icon(Icons.lock),
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              isPasswordVisible
-                                  ? Icons.visibility
-                                  : Icons.visibility_off,
-                            ),
-                            onPressed: () {
-                              setState(() {
-                                isPasswordVisible =
-                                    !isPasswordVisible;
-                              });
-                            },
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 20),
-
-                      // LOGIN BUTTON
-                      SizedBox(
-                        width: double.infinity,
-                        height: 50,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          onPressed: isLoading ? null : login,
-                          child: isLoading
-                              ? const CircularProgressIndicator(
-                                  color: Colors.white,
-                                )
-                              : const TranslatedText("Login"),
-                        ),
-                      ),
-
-                      const SizedBox(height: 10),
-
-                      TextButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                  const RegisterScreen(),
-                            ),
-                          );
-                        },
-                        child: const TranslatedText("Create Account"),
-                      ),
-                    ],
+                TextField(
+                  controller: emailController,
+                  decoration: InputDecoration(
+                    labelText: "Email",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                 ),
-              ),
+
+                const SizedBox(height: 15),
+
+                TextField(
+                  controller: passwordController,
+                  obscureText: !isPasswordVisible,
+                  decoration: InputDecoration(
+                    labelText: "Password",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        isPasswordVisible
+                            ? Icons.visibility
+                            : Icons.visibility_off,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          isPasswordVisible = !isPasswordVisible;
+                        });
+                      },
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                SizedBox(
+                  height: 45,
+                  child: ElevatedButton(
+                    onPressed: isLoading ? null : login,
+                    child: isLoading
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const TranslatedText("Login"),
+                  ),
+                ),
+
+                const SizedBox(height: 10),
+
+                TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const RegisterScreen(),
+                      ),
+                    );
+                  },
+                  child: const TranslatedText("Create Account"),
+                ),
+              ],
             ),
           ),
         ),

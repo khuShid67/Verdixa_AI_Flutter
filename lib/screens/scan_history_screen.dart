@@ -4,6 +4,9 @@ import '../services/history_service.dart';
 import '../services/auth_service.dart';
 import '../config/app_config.dart';
 import 'scan_detail_screen.dart';
+import 'package:provider/provider.dart';
+import '../widgets/translated_text.dart';
+import '../providers/language_provider.dart';
 
 class ScanHistoryScreen extends StatefulWidget {
   const ScanHistoryScreen({super.key});
@@ -76,11 +79,12 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<LanguageProvider>();
     final isWeb = MediaQuery.of(context).size.width > 800;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Scan History"),
+        title: const TranslatedText("Scan History"),
         centerTitle: true,
       ),
       body: Container(
@@ -106,7 +110,7 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen> {
                 ? const Center(child: CircularProgressIndicator())
                 : scans.isEmpty
                     ? const Center(
-                        child: Text(
+                        child: TranslatedText(
                           "No Scans Yet",
                           style: TextStyle(fontSize: 16),
                         ),
@@ -175,7 +179,7 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
+                  TranslatedText(
                     formatDiseaseName(scan.diseaseName),
                     style: const TextStyle(
                       fontSize: 16,
@@ -184,11 +188,18 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen> {
                   ),
 
                   const SizedBox(height: 8),
-
-                  Text(
-                    "Confidence: ${(scan.confidence * 100).toStringAsFixed(1)}%",
-                    style: const TextStyle(fontSize: 13),
-                  ),
+                  Row(
+                    children: [
+                      const TranslatedText(
+                        "Confidence",
+                        style: TextStyle(fontSize: 13),
+                      ),
+                      Text(
+                        ": ${(scan.confidence * 100).toStringAsFixed(1)}%",
+                        style: const TextStyle(fontSize: 13),
+                      ),
+                    ],
+                  )
                 ],
               ),
             ),
@@ -259,7 +270,7 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen> {
                       const SizedBox(width: 6),
 
                       Expanded(
-                        child: Text(
+                        child: TranslatedText(
                           formatDiseaseName(scan.diseaseName),
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
@@ -281,10 +292,18 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen> {
                       ),
                       const SizedBox(width: 6),
 
-                      Text(
-                        "Confidence Label: ${(scan.confidence * 100).toStringAsFixed(1)}%",
-                        style: const TextStyle(fontSize: 13),
-                      ),
+                      Row(
+                        children: [
+                          const TranslatedText(
+                            "Confidence Label",
+                            style: TextStyle(fontSize: 13),
+                          ),
+                          Text(
+                            ": ${(scan.confidence * 100).toStringAsFixed(1)}%",
+                            style: const TextStyle(fontSize: 13),
+                          ),
+                        ],
+                      )
                     ],
                   ),
                 ],

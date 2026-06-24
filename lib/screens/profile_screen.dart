@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'scan_history_screen.dart';
 import '../services/auth_service.dart';
 import '../widgets/translated_text.dart';
+import 'package:provider/provider.dart';
+import '../providers/language_provider.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -32,6 +34,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<LanguageProvider>();
     final theme = Theme.of(context);
     final color = theme.colorScheme;
 
@@ -103,7 +106,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
           const SizedBox(height: 14),
 
-          Text(
+          TranslatedText(
             email ?? "Guest User",
             textAlign: TextAlign.center,
             style: theme.textTheme.titleMedium?.copyWith(
@@ -122,7 +125,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               color: color.primary.withOpacity(0.1),
               borderRadius: BorderRadius.circular(20),
             ),
-            child: Text(
+            child: TranslatedText(
               "Verdixa AI User",
               style: TextStyle(
                 color: color.primary,
@@ -219,7 +222,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  TranslatedText(
                     title,
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
@@ -228,7 +231,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                   const SizedBox(height: 4),
 
-                  Text(
+                  TranslatedText(
                     subtitle,
                     style: theme.textTheme.bodySmall,
                   ),

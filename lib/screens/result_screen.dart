@@ -2,7 +2,8 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-
+import 'package:provider/provider.dart';
+import '../providers/language_provider.dart';
 import '../models/prediction_model.dart';
 import '../widgets/translated_text.dart';
 
@@ -53,6 +54,7 @@ class ResultScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<LanguageProvider>();
     final theme = Theme.of(context);
     final color = theme.colorScheme;
     final isWeb = MediaQuery.of(context).size.width > 800;
@@ -249,11 +251,11 @@ class ResultScreen extends StatelessWidget {
         children: [
           Icon(icon, size: 20),
           const SizedBox(height: 6),
-          Text(title,
+          TranslatedText(title,
               style: const TextStyle(
                   fontSize: 12, fontWeight: FontWeight.bold)),
           const SizedBox(height: 4),
-          Text(value, textAlign: TextAlign.center),
+          TranslatedText(value, textAlign: TextAlign.center),
         ],
       ),
     );
@@ -294,12 +296,12 @@ class ResultScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      TranslatedText(
                         formatKey(entry.key),
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 6),
-                      Text(formatValue(entry.value)),
+                      TranslatedText(formatValue(entry.value)),
                     ],
                   ),
                 ),
@@ -343,7 +345,7 @@ class ResultScreen extends StatelessWidget {
             children: [
               Icon(icon, color: color.primary),
               const SizedBox(width: 8),
-              Text(
+              TranslatedText(
                 title,
                 style: Theme.of(context)
                     .textTheme

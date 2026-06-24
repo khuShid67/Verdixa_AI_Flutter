@@ -6,6 +6,6 @@ class AppConfig {
       return "http://localhost:8000";
     }
 
-    return "http://10.230.188.171:8000";
+    return "http://10.200.180.171:8000";
   }
 }

@@ -4,6 +4,9 @@ import '../services/recommendation_service.dart';
 import '../config/app_config.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io' show File;
+import 'package:provider/provider.dart';
+import '../providers/language_provider.dart';
+import '../widgets/translated_text.dart';
 
 class ScanDetailScreen extends StatefulWidget {
   final DetectionHistoryModel scan;
@@ -83,13 +86,14 @@ class _ScanDetailScreenState extends State<ScanDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<LanguageProvider>();
     final scan = widget.scan;
     final isWeb = kIsWeb;
     final color = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_format(scan.diseaseName)),
+        title: TranslatedText(_format(scan.diseaseName)),
         centerTitle: true,
       ),
       body: loading
@@ -196,7 +200,7 @@ class _ScanDetailScreenState extends State<ScanDetailScreen> {
       ),
       child: Column(
         children: [
-          Text(
+          TranslatedText(
             _format(scan.diseaseName),
             style: const TextStyle(
                 fontSize: 18, fontWeight: FontWeight.bold),
@@ -230,11 +234,11 @@ class _ScanDetailScreenState extends State<ScanDetailScreen> {
         ),
         child: Column(
           children: [
-            Text(title,
+            TranslatedText(title,
                 style: const TextStyle(
                     fontSize: 11, fontWeight: FontWeight.bold)),
             const SizedBox(height: 4),
-            Text(value, textAlign: TextAlign.center),
+            TranslatedText(value, textAlign: TextAlign.center),
           ],
         ),
       ),
@@ -261,13 +265,13 @@ class _ScanDetailScreenState extends State<ScanDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          TranslatedText(
             title,
             style: const TextStyle(
                 fontSize: 15, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
-          Text(_safe(content)),
+          TranslatedText(_safe(content)),
         ],
       ),
     );

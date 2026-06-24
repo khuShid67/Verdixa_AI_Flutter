@@ -27,7 +27,10 @@ class TranslatedText extends StatefulWidget {
 class _TranslatedTextState extends State<TranslatedText> {
   String _translated = '';
   bool _loading = false;
+
   String _currentLang = '';
+  String _currentText = '';
+
   int _requestId = 0;
 
   @override
@@ -47,19 +50,24 @@ class _TranslatedTextState extends State<TranslatedText> {
     final lang =
         context.read<LanguageProvider>().locale.languageCode;
 
-    if (oldWidget.text != widget.text ||
-        lang != _currentLang) {
-      _updateTranslation(lang, widget.text);
-    }
+    _updateTranslation(lang, widget.text);
   }
 
   void _updateTranslation(String lang, String text) {
-    if (lang == _currentLang && text == widget.text) return;
+    if (lang == _currentLang &&
+        text == _currentText) {
+      return;
+    }
 
     _currentLang = lang;
-    _loading = true;
+    _currentText = text;
 
-    final int requestId = ++_requestId;
+    setState(() {
+      _loading = true;
+      _translated = '';
+    });
+
+    final requestId = ++_requestId;
 
     TranslationService.translate(text, lang).then((result) {
       if (!mounted || requestId != _requestId) return;
@@ -73,12 +81,12 @@ class _TranslatedTextState extends State<TranslatedText> {
 
   @override
   Widget build(BuildContext context) {
-    final displayText = _loading
-        ? widget.text // or you can show "..."
-        : (_translated.isEmpty ? widget.text : _translated);
-
     return Text(
-      displayText,
+      _loading
+          ? widget.text
+          : (_translated.isEmpty
+                ? widget.text
+                : _translated),
       style: widget.style,
       textAlign: widget.textAlign,
       maxLines: widget.maxLines,
